@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report Agent Behavior - AgentOps Safety</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .header h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .shield-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .form-container {
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .required {
+            color: #e74c3c;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .severity-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .severity-option {
+            position: relative;
+        }
+
+        .severity-option input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+        }
+
+        .severity-option label {
+            display: block;
+            padding: 12px;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .severity-option input[type="radio"]:checked + label {
+            border-color: #667eea;
+            background: #f0f3ff;
+        }
+
+        .severity-low { }
+        .severity-medium { }
+        .severity-high { }
+        .severity-critical { }
+
+        .severity-option input[type="radio"]:checked + label.severity-low {
+            border-color: #f39c12;
+            background: #fef5e7;
+        }
+
+        .severity-option input[type="radio"]:checked + label.severity-medium {
+            border-color: #e67e22;
+            background: #fdebd0;
+        }
+
+        .severity-option input[type="radio"]:checked + label.severity-high {
+            border-color: #e74c3c;
+            background: #fadbd8;
+        }
+
+        .severity-option input[type="radio"]:checked + label.severity-critical {
+            border-color: #c0392b;
+            background: #f2d7d5;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .success-message {
+            display: none;
+            background: #d4edda;
+            color: #155724;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border: 1px solid #c3e6cb;
+        }
+
+        .error-message {
+            display: none;
+            background: #f8d7da;
+            color: #721c24;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border: 1px solid #f5c6cb;
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196F3;
+            padding: 16px;
+            margin-bottom: 25px;
+            border-radius: 4px;
+        }
+
+        .info-box p {
+            color: #0d47a1;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            color: white;
+            font-size: 14px;
+        }
+
+        .footer a {
+            color: white;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="shield-icon">🛡️</div>
+            <h1>Report Agent Behavior</h1>
+            <p>Help us maintain agent safety by reporting concerning behavior.<br>
+               Your report will be reviewed and the agent owner will be notified.</p>
+        </div>
+
+        <div class="form-container">
+            <div class="info-box">
+                <p><strong>When to Report:</strong> If an AI agent exhibits harmful behavior (asks for personal information, inappropriate content, grooming behavior, self-harm encouragement, etc.), please report it immediately.</p>
+            </div>
+
+            <form id="reportForm">
+                <div class="form-group">
+                    <label>Agent ID <span class="required">*</span></label>
+                    <input type="text" id="agentId" name="agentId" placeholder="e.g., agent-abc123" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Reporter Type <span class="required">*</span></label>
+                    <select id="reporterType" name="reporterType" required>
+                        <option value="">Select...</option>
+                        <option value="human">Human (Parent, User, Guardian)</option>
+                        <option value="agent">Agent (Another AI System)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Your Contact (Email or ID) <span class="required">*</span></label>
+                    <input type="text" id="reporterId" name="reporterId" placeholder="email@example.com or user-12345" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Severity <span class="required">*</span></label>
+                    <div class="severity-options">
+                        <div class="severity-option">
+                            <input type="radio" id="sev-low" name="severity" value="low" required>
+                            <label for="sev-low" class="severity-low">Low<br><small>Minor concern</small></label>
+                        </div>
+                        <div class="severity-option">
+                            <input type="radio" id="sev-medium" name="severity" value="medium">
+                            <label for="sev-medium" class="severity-medium">Medium<br><small>Repeated issues</small></label>
+                        </div>
+                        <div class="severity-option">
+                            <input type="radio" id="sev-high" name="severity" value="high">
+                            <label for="sev-high" class="severity-high">High<br><small>Significant concern</small></label>
+                        </div>
+                        <div class="severity-option">
+                            <input type="radio" id="sev-critical" name="severity" value="critical">
+                            <label for="sev-critical" class="severity-critical">Critical<br><small>Immediate danger</small></label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Violation Type <span class="required">*</span></label>
+                    <select id="violationType" name="violationType" required>
+                        <option value="">Select violation type...</option>
+                        <option value="toxic_language">Toxic Language</option>
+                        <option value="nsfw_content">NSFW/Inappropriate Content</option>
+                        <option value="self_harm">Self-Harm Encouragement</option>
+                        <option value="privacy_violations">Privacy Violations</option>
+                        <option value="grooming">Grooming Behavior</option>
+                        <option value="harmful_instruction">Harmful Instructions</option>
+                        <option value="inappropriate_content">Inappropriate Content</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Description <span class="required">*</span></label>
+                    <textarea id="description" name="description" placeholder="Please describe what happened in detail. Include specific messages or behaviors you observed." required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Evidence (Optional)</label>
+                    <textarea id="evidence" name="evidence" placeholder='Optional: Paste conversation transcript, screenshot URL, or other evidence in JSON format: {"conversation_id": "conv-123", "timestamp": "2025-11-12T10:00:00Z"}'></textarea>
+                </div>
+
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    Submit Report
+                </button>
+            </form>
+
+            <div class="success-message" id="successMessage">
+                <strong>✅ Report Submitted Successfully!</strong><br>
+                Report ID: <span id="reportId"></span><br>
+                The agent owner has been notified and will investigate. Thank you for helping keep agents safe.
+            </div>
+
+            <div class="error-message" id="errorMessage">
+                <strong>❌ Submission Failed</strong><br>
+                <span id="errorText"></span>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>AgentOps Safety Platform • <a href="http://localhost:8000/docs">API Docs</a> • <a href="http://localhost:5173">Dashboard</a></p>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8000';
+
+        document.getElementById('reportForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const submitBtn = document.getElementById('submitBtn');
+            const successMsg = document.getElementById('successMessage');
+            const errorMsg = document.getElementById('errorMessage');
+
+            // Hide messages
+            successMsg.style.display = 'none';
+            errorMsg.style.display = 'none';
+
+            // Disable button
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+
+            // Collect form data
+            const formData = {
+                agent_id: document.getElementById('agentId').value,
+                reporter_type: document.getElementById('reporterType').value,
+                reporter_id: document.getElementById('reporterId').value,
+                severity: document.querySelector('input[name="severity"]:checked').value,
+                violation_type: document.getElementById('violationType').value,
+                description: document.getElementById('description').value,
+            };
+
+            // Parse evidence if provided
+            const evidenceText = document.getElementById('evidence').value.trim();
+            if (evidenceText) {
+                try {
+                    formData.evidence = JSON.parse(evidenceText);
+                } catch (e) {
+                    formData.evidence = { raw: evidenceText };
+                }
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/v1/registry/reports`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    // Success
+                    document.getElementById('reportId').textContent = result.report_id;
+                    successMsg.style.display = 'block';
+                    document.getElementById('reportForm').reset();
+
+                    // Scroll to success message
+                    successMsg.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                } else {
+                    // Error
+                    document.getElementById('errorText').textContent = result.detail || 'Unknown error occurred';
+                    errorMsg.style.display = 'block';
+                    errorMsg.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+            } catch (error) {
+                document.getElementById('errorText').textContent = `Network error: ${error.message}`;
+                errorMsg.style.display = 'block';
+                errorMsg.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Report';
+            }
+        });
+    </script>
+</body>
+</html>

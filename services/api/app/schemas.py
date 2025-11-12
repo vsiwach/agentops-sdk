@@ -42,6 +42,24 @@ class A2AEventIn(BaseModel):
     created_at: Optional[int] = None
 
 
+class SafetyEventIn(BaseModel):
+    run_id: str
+    type: str = "safety_audit"
+    user_age: Optional[int] = None
+    user_message: Optional[str] = None
+    agent_response: Optional[str] = None
+    auditor_model: Optional[str] = None
+    has_violation: bool = False
+    violation_type: Optional[str] = None
+    severity: Optional[str] = None
+    safety_score: Optional[float] = None
+    explanation: Optional[str] = None
+    rating_before: Optional[int] = None
+    rating_after: Optional[int] = None
+    latency_ms: Optional[float] = None
+    created_at: Optional[int] = None
+
+
 class RunSummary(BaseModel):
     id: str
     project: str
@@ -54,5 +72,43 @@ class RunSummary(BaseModel):
 
 class RunDetail(RunSummary):
     events: list[dict]
+
+
+class AgentOwnerIn(BaseModel):
+    owner_id: str
+    organization: str
+    email: str
+    phone: Optional[str] = None
+    verified: bool = False
+
+
+class AgentCertificateIn(BaseModel):
+    agent_id: str
+    agent_name: str
+    model: str
+    owner_id: str
+    safety_rating: int
+    safety_score: float
+    test_results: dict
+    issued_at: str
+    expires_at: str
+    signature: str
+    status: str = "certified"
+
+
+class BehaviorReportIn(BaseModel):
+    agent_id: str
+    reporter_type: str  # "human" or "agent"
+    reporter_id: str
+    severity: str  # "low", "medium", "high", "critical"
+    violation_type: str
+    description: str
+    evidence: Optional[dict] = None
+
+
+class AgentStatusUpdate(BaseModel):
+    agent_id: str
+    new_status: str
+    reason: str
 
 

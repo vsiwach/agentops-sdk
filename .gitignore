@@ -388,3 +388,41 @@ tmp/
 # Local development
 local/
 dev/
+
+# AgentOps Safety Ecosystem specific
+# Model files
+*.gguf
+*.bin
+*.safetensors
+*.pth
+*.pt
+archived_models/
+models/
+
+# Dataset files
+datasets/
+*.csv
+*.jsonl
+*.parquet
+jigsaw-toxic-comment-train.csv
+
+# Training outputs
+training_results/
+checkpoints/
+outputs/
+
+# Generated files
+*.png
+*.jpg
+*.jpeg
+auditor_*.json
+*_results.json
+demo_output.txt
+
+# Data directory
+/data/
+agent_registry.db
+
+# Temporary test files
+test_output/
+*.ipynb

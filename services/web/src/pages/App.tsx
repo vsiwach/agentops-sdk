@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Play, Clock, DollarSign, AlertTriangle, CheckCircle, XCircle, Activity, Sun, Moon, Trash2 } from 'lucide-react'
+import { Play, Clock, DollarSign, AlertTriangle, CheckCircle, XCircle, Activity, Sun, Moon, Trash2, Shield } from 'lucide-react'
 import { useTheme } from '../contexts/ThemeContext'
 
 type RunSummary = {
@@ -32,6 +32,19 @@ type Event = {
   status_code?: number
   duration_ms?: number
   error?: string
+  // Safety audit fields
+  user_age?: number
+  user_message?: string
+  agent_response?: string
+  auditor_model?: string
+  has_violation?: boolean
+  violation_type?: string
+  severity?: string
+  safety_score?: number
+  explanation?: string
+  rating_before?: number
+  rating_after?: number
+  latency_ms?: number
 }
 
 type RunDetail = RunSummary & { events: Event[] }
@@ -251,6 +264,7 @@ function RunView({ run }: { run: RunDetail }) {
       case 'run_started': return <Play className="w-4 h-4 text-green-600" />
       case 'llm_call': return <Activity className="w-4 h-4 text-blue-600" />
       case 'a2a_http_call': return <DollarSign className="w-4 h-4 text-purple-600" />
+      case 'safety_audit': return <Shield className="w-4 h-4 text-orange-600" />
       case 'run_terminated': return <AlertTriangle className="w-4 h-4 text-red-600" />
       case 'run_completed': return <CheckCircle className="w-4 h-4 text-green-600" />
       default: return <Clock className="w-4 h-4 text-gray-600" />
@@ -422,6 +436,127 @@ function RunView({ run }: { run: RunDetail }) {
                         {event.total_tokens && (
                           <span className="font-medium">Total: {event.total_tokens} tokens</span>
                         )}
+                      </div>
+                    )}
+
+                    {/* Safety Audit Event */}
+                    {event.type === 'safety_audit' && (
+                      <div className="space-y-4">
+                        {/* User Message */}
+                        {event.user_message && (
+                          <div>
+                            <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                              👤 User Message
+                              {event.user_age && (
+                                <span className="text-xs bg-blue-100 dark:bg-blue-900 px-2 py-0.5 rounded text-blue-800 dark:text-blue-200">
+                                  Age: {event.user_age}
+                                </span>
+                              )}
+                            </h5>
+                            <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
+                              <pre className="whitespace-pre-wrap text-sm text-gray-800 dark:text-gray-200 font-mono">
+                                {event.user_message}
+                              </pre>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Agent Response */}
+                        {event.agent_response && (
+                          <div>
+                            <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">🤖 Agent Response</h5>
+                            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
+                              <pre className="whitespace-pre-wrap text-sm text-gray-800 dark:text-gray-200 font-mono">
+                                {event.agent_response}
+                              </pre>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Audit Result */}
+                        <div className={`rounded-lg p-4 border-2 ${
+                          event.has_violation
+                            ? event.severity === 'critical'
+                              ? 'bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-700'
+                              : event.severity === 'high'
+                              ? 'bg-orange-50 dark:bg-orange-900/20 border-orange-300 dark:border-orange-700'
+                              : event.severity === 'medium'
+                              ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-300 dark:border-yellow-700'
+                              : 'bg-amber-50 dark:bg-amber-900/20 border-amber-300 dark:border-amber-700'
+                            : 'bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700'
+                        }`}>
+                          <div className="flex items-start justify-between mb-3">
+                            <h5 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                              🔍 Safety Audit
+                              {event.auditor_model && (
+                                <span className="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded font-mono text-gray-800 dark:text-gray-200">
+                                  {event.auditor_model}
+                                </span>
+                              )}
+                            </h5>
+                            {event.latency_ms && (
+                              <span className="text-xs text-gray-500 dark:text-gray-400">
+                                {event.latency_ms.toFixed(0)}ms
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="grid grid-cols-4 gap-3 mb-3">
+                            <div className="text-center">
+                              <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Violation</div>
+                              <div className={`text-lg font-bold ${
+                                event.has_violation
+                                  ? 'text-red-600 dark:text-red-400'
+                                  : 'text-green-600 dark:text-green-400'
+                              }`}>
+                                {event.has_violation ? '⚠️ YES' : '✅ NO'}
+                              </div>
+                            </div>
+                            <div className="text-center">
+                              <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Type</div>
+                              <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                {event.violation_type || 'none'}
+                              </div>
+                            </div>
+                            <div className="text-center">
+                              <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Severity</div>
+                              <div className={`text-sm font-semibold ${
+                                event.severity === 'critical' ? 'text-red-600 dark:text-red-400' :
+                                event.severity === 'high' ? 'text-orange-600 dark:text-orange-400' :
+                                event.severity === 'medium' ? 'text-yellow-600 dark:text-yellow-400' :
+                                event.severity === 'low' ? 'text-amber-600 dark:text-amber-400' :
+                                'text-gray-600 dark:text-gray-400'
+                              }`}>
+                                {event.severity || 'none'}
+                              </div>
+                            </div>
+                            <div className="text-center">
+                              <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Score</div>
+                              <div className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                                {event.safety_score ? event.safety_score.toFixed(1) : 'N/A'}/10
+                              </div>
+                            </div>
+                          </div>
+
+                          {event.explanation && (
+                            <div className="text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 rounded p-3">
+                              <span className="font-medium">Explanation:</span> {event.explanation}
+                            </div>
+                          )}
+
+                          {(event.rating_before !== undefined && event.rating_after !== undefined) && (
+                            <div className="mt-3 flex items-center justify-center gap-3 text-sm">
+                              <span className="text-gray-600 dark:text-gray-400">Agent Rating:</span>
+                              <span className="font-bold text-gray-900 dark:text-gray-100">{event.rating_before}/5</span>
+                              {event.rating_before !== event.rating_after && (
+                                <>
+                                  <span className="text-red-500">→</span>
+                                  <span className="font-bold text-red-600 dark:text-red-400">{event.rating_after}/5</span>
+                                </>
+                              )}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     )}
                   </div>

@@ -60,3 +60,26 @@ class A2AEvent(Base):
     run = relationship("Run")
 
 
+class SafetyEvent(Base):
+    __tablename__ = "safety_events"
+
+    id = Column(Integer, primary_key=True, index=True)
+    run_id = Column(String, ForeignKey("runs.id"), index=True, nullable=False)
+    type = Column(String, nullable=False)  # safety_audit
+    user_age = Column(Integer, nullable=True)  # Age of user
+    user_message = Column(Text, nullable=True)  # User's message
+    agent_response = Column(Text, nullable=True)  # Agent's response
+    auditor_model = Column(String, nullable=True)  # Auditor model name
+    has_violation = Column(Integer, nullable=False, default=0)  # 0 or 1
+    violation_type = Column(String, nullable=True)  # toxic_language, nsfw_content, etc.
+    severity = Column(String, nullable=True)  # low, medium, high, critical
+    safety_score = Column(Float, nullable=True)  # 0-10
+    explanation = Column(Text, nullable=True)  # Audit explanation
+    rating_before = Column(Integer, nullable=True)  # Agent rating before
+    rating_after = Column(Integer, nullable=True)  # Agent rating after
+    latency_ms = Column(Float, nullable=True)  # Audit latency
+    created_at = Column(Integer, nullable=True)  # Epoch milliseconds
+
+    run = relationship("Run")
+
+
