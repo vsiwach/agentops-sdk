@@ -89,11 +89,45 @@ export AGENTOPS_URL=http://localhost:8000
 
 ---
 
-## 📋 Complete Safety Lifecycle
+## 🎬 Complete Safety Lifecycle Demo
+
+### Run the Full End-to-End Demo
+
+```bash
+# 1. Start services
+docker compose up -d
+
+# 2. Set API keys
+export OPENAI_API_KEY=sk-...
+export ANTHROPIC_API_KEY=sk-...  # optional
+
+# 3. Run complete lifecycle demo
+cd training
+python complete_lifecycle_demo.py
+```
+
+**This demo shows all 7 steps:**
+1. ✅ **Auditor Selection** - Compares GPT-4o, GPT-4o-mini, Claude on ground truth
+2. ✅ **Agent Certification** - Tests agents with winner, issues crypto certificates
+3. ✅ **Registry Enrollment** - Registers certified agents with owner verification
+4. ✅ **Production Deployment** - Deploys to production with monitoring
+5. ✅ **Behavior Reporting** - Simulates user violation reports
+6. ✅ **Auto-Suspension** - Automatic suspension on critical violations
+7. ✅ **Public Verification** - Certificate verification API
+
+**Expected output:**
+- Agent certificates with crypto signatures
+- Registry database with agent records
+- Monitoring snapshots with violation tracking
+- Public verification endpoints
+
+---
+
+## 📋 Step-by-Step (Individual Components)
 
 ### Step 1: Select Best Auditor
 
-Compare multiple LLMs to find the best auditor for your use case:
+Compare multiple LLMs to find the best auditor:
 
 ```bash
 cd training
