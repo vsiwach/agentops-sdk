@@ -395,11 +395,48 @@ Common Violations:
 
 ---
 
-## 🛠️ Core Components
+## 🛠️ Core Components (Complete Ecosystem)
 
-### Agent Audit System (`training/agent_audit_system.py`)
+The system implements the full child safety ecosystem architecture:
+
+```
+Ground Truth Data → Select Best Auditor (GPT-4o)
+                           ↓
+Your Agent → Test with Auditor → Get Safety Rating + Crypto Signature
+                           ↓
+Deploy to Production → Monitor via Dashboard + Public Report API → Auto-Suspend if violations
+```
+
+### 1. Ground Truth & Auditor Selection
+
+**`training/validate_auditors.py`** - Select Best Auditor
+```python
+# Compare multiple auditor models on ground truth dataset
+# Outputs: Best auditor based on accuracy, latency, cost
+python training/validate_auditors.py
+```
+
+**`training/ground_truth_scenarios.json`** - Ground Truth Dataset
+- 5 risk categories (Meeting Strangers, Inappropriate Content, Self-Harm, Privacy, Bullying)
+- Expected response guidelines for each scenario
+- Used to benchmark auditor accuracy
+
+### 2. Agent Testing & Certification
+
+**`training/agent_audit_system.py`** - Agent Auditor
 
 Tests a single agent against ground truth scenarios:
+
+```python
+from training.agent_audit_system import audit_agent
+
+results = audit_agent(
+    agent_name="My Safety Agent",
+    agent_model="gpt-4o-mini",
+    auditor_model="gpt-4o-mini",
+    test_scenarios=[...]
+)
+```
 
 ```python
 from training.agent_audit_system import audit_agent
@@ -422,9 +459,9 @@ print(f"Safety Score: {results['safety_score']}/10")
 print(f"Critical Failures: {results['critical_failures']}")
 ```
 
-### Safety Rating System (`training/agent_safety_rating_system.py`)
+**`training/agent_safety_rating_system.py`** - Safety Rating & Crypto Signature
 
-Generates cryptographically signed certificates:
+Generates cryptographically signed certificates with HMAC-SHA256:
 
 ```python
 from training.agent_safety_rating_system import certify_agent
@@ -439,9 +476,25 @@ certificate = certify_agent(
 is_valid = verify_certificate(certificate)
 ```
 
-### Runtime Monitor (`training/realtime_dashboard.py`)
+**`training/agent_safety_comparison.py`** - Compare Multiple Agents
+```bash
+# Benchmark multiple models side-by-side
+python training/agent_safety_comparison.py
 
-Tracks production violations and adjusts ratings:
+# Output: agent_safety_certificates.json with comparative ratings
+```
+
+**`training/agent_registry_system.py`** - Global Agent Registry
+- Tracks all production agents with cryptographic identity
+- Agent ownership & verification
+- Behavior reports from users/agents
+- Status management (certified, production, suspended, recalled)
+
+### 3. Production Deployment & Monitoring
+
+**`training/realtime_dashboard.py`** - Runtime Monitor
+
+Tracks production violations and adjusts ratings in real-time:
 
 ```python
 from training.realtime_dashboard import monitor_agent
@@ -454,6 +507,40 @@ snapshot = monitor_agent(
 if snapshot["status"] == "SUSPENDED":
     alert_team(snapshot)
 ```
+
+**Auto-Suspension Logic:**
+- 3+ critical violations in 7 days → Immediate suspension
+- Rating drops below 2 stars → Review required
+- Increasing violation pattern → Alert sent
+
+**`training/public_report_portal.html`** - Public Report API
+- Embeddable safety certificates
+- Signature verification endpoint
+- Transparent reporting for stakeholders
+
+### 4. Complete Lifecycle Demo
+
+**`training/complete_lifecycle_demo.py`** - End-to-End Demo
+
+Demonstrates the full ecosystem in one script:
+
+```bash
+python training/complete_lifecycle_demo.py
+```
+
+**Steps:**
+1. **Auditor Selection** - Compares GPT-4o, GPT-4o-mini, Claude on ground truth
+2. **Agent Certification** - Tests agents with winning auditor, issues crypto certificates
+3. **Registry Enrollment** - Registers certified agents with owner verification
+4. **Production Deployment** - Deploys to production with monitoring enabled
+5. **Behavior Reporting** - Simulates user reports of violations
+6. **Auto-Suspension** - Demonstrates automatic suspension on critical violations
+7. **Public Verification** - Shows public API for certificate verification
+
+**Other Demo Scripts:**
+- `training/integrated_safety_demo.py` - AgentOps SDK integration
+- `training/agentops_safety_demo.py` - Production usage patterns
+- `training/simple_agent_comparison.py` - Quick model comparison
 
 ---
 
