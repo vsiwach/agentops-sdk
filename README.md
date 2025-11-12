@@ -234,9 +234,11 @@ python training/realtime_dashboard.py
 
 ---
 
-## 🗂️ Ground Truth Dataset
+## 🗂️ Ground Truth Dataset & Training Data
 
-All test scenarios are stored in **`training/ground_truth_scenarios.json`**
+### Pre-Built Test Scenarios
+
+All test scenarios for agent certification are stored in **`training/ground_truth_scenarios.json`**
 
 ### Dataset Structure
 
@@ -286,6 +288,55 @@ To contribute new test scenarios:
 ```bash
 python training/quick_test.py
 ```
+
+### Child Safety Training Datasets (Optional)
+
+If you want to train custom child safety models, we provide scripts to download and prepare training data:
+
+**Step 1: Download Public Datasets**
+```bash
+cd training
+python 7_download_child_safety_datasets.py
+```
+
+Downloads from HuggingFace:
+- **Jigsaw Toxicity** (159K Wikipedia comments with toxicity labels)
+- **X-Sensitive** (Social media: profanity, sexual, drugs, self-harm)
+- **OIG-Moderation** (NSFW, anthropic-redteam, toxic comments)
+- **Content-Moderation** (Jigsaw evaluation subset)
+
+Output: `data/child_safety/raw/`
+
+**Step 2: Generate Synthetic Child Safety Examples**
+```bash
+export OPENAI_API_KEY=sk-...
+python 8_generate_child_safety_synthetic.py
+```
+
+Generates realistic child safety violation scenarios:
+- Meeting strangers online
+- Inappropriate content requests
+- Self-harm/crisis situations
+- Privacy violations
+- Bullying scenarios
+
+Creates 5000+ labeled examples (40% violations, 60% safe)
+
+Output: `data/child_safety/processed/synthetic_child_safety.jsonl`
+
+**Step 3: Prepare Training Data**
+```bash
+python 9_prepare_child_safety_training_data.py
+```
+
+Combines real + synthetic data and formats for model training:
+- Chat format with system prompts
+- Train/val/test splits (80/10/10)
+- JSON response format
+
+Output: `data/child_safety/training/{train,val,test}.jsonl`
+
+**Note:** These scripts are for training custom models. For most users, the ground truth scenarios in `ground_truth_scenarios.json` are sufficient for agent certification using existing models like GPT-4o-mini or Claude.
 
 ---
 
