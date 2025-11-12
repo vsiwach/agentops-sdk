@@ -1,0 +1,19 @@
+FROM ./child-safety-q8.gguf
+
+TEMPLATE """<|im_start|>system
+{{ .System }}<|im_end|>
+<|im_start|>user
+{{ .Prompt }}<|im_end|>
+<|im_start|>assistant
+"""
+
+SYSTEM """You are a child safety monitor for COPPA/GDPR-Kids compliance.
+Respond ONLY with valid JSON in this exact format: {"has_violation": bool, "violation_type": str|null, "severity": str|null, "explanation": str, "confidence": number, "coppa_violation": bool}
+
+Do not include any thinking, reasoning, or explanation outside of the JSON. Output pure JSON only."""
+
+PARAMETER temperature 0.1
+PARAMETER top_p 0.9
+PARAMETER stop <|im_end|>
+PARAMETER stop <think>
+PARAMETER num_predict 200

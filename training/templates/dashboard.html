@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Safety Monitoring Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            padding: 20px;
+        }
+
+        .dashboard {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .controls {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #06A77D;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #058C68;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(6,167,125,0.3);
+        }
+
+        .btn-secondary {
+            background: #F49D37;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #E08826;
+        }
+
+        .status-bar {
+            flex: 1;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .status-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .status-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+
+        .exchange-panel {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            min-height: 600px;
+        }
+
+        .panel-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .exchange-box {
+            margin-bottom: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s;
+        }
+
+        .exchange-box.active {
+            border-color: #667eea;
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.2);
+        }
+
+        .exchange-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .test-id {
+            font-weight: 700;
+            color: #667eea;
+            font-size: 18px;
+        }
+
+        .category-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .category-critical {
+            background: #FFE5E8;
+            color: #D72638;
+        }
+
+        .category-high {
+            background: #FFE9D9;
+            color: #FF6B6B;
+        }
+
+        .category-safe {
+            background: #E8F8F4;
+            color: #06A77D;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message-user {
+            background: #F5F5F5;
+            border-left: 4px solid #667eea;
+        }
+
+        .message-agent {
+            background: #E8F8F4;
+            border-left: 4px solid #06A77D;
+        }
+
+        .message-auditor {
+            background: #E8F4F8;
+            border-left: 4px solid #2E86AB;
+        }
+
+        .message-violation {
+            background: #FFE5E8;
+            border-left: 4px solid #D72638;
+        }
+
+        .message-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #666;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .message-content {
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .audit-details {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .audit-item {
+            padding: 8px;
+            background: white;
+            border-radius: 5px;
+            font-size: 13px;
+        }
+
+        .audit-label {
+            color: #666;
+            font-size: 11px;
+        }
+
+        .audit-value {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .violation-alert {
+            background: #D72638;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-weight: 600;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+        .history-panel {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            padding: 15px;
+            border-left: 4px solid #e0e0e0;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-radius: 5px;
+        }
+
+        .history-item:hover {
+            background: #f5f5f5;
+            border-left-color: #667eea;
+        }
+
+        .history-item.violation {
+            border-left-color: #D72638;
+            background: #FFE5E8;
+        }
+
+        .history-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .history-id {
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .history-time {
+            font-size: 11px;
+            color: #666;
+        }
+
+        .history-message {
+            font-size: 13px;
+            color: #666;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .rating-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            background: #F5F5F5;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .rating-value {
+            font-size: 36px;
+            font-weight: 700;
+            color: #06A77D;
+        }
+
+        .rating-label {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .agent-status {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .status-idle {
+            background: #E0E0E0;
+            color: #666;
+        }
+
+        .status-processing {
+            background: #FFF3CD;
+            color: #856404;
+        }
+
+        .status-responding {
+            background: #E8F8F4;
+            color: #06A77D;
+        }
+
+        .status-auditing {
+            background: #E8F4F8;
+            color: #2E86AB;
+        }
+
+        .status-violation_detected {
+            background: #FFE5E8;
+            color: #D72638;
+            animation: pulse 2s infinite;
+        }
+
+        .status-safe {
+            background: #E8F8F4;
+            color: #06A77D;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <div class="header">
+            <h1>🛡️ Agent Safety Monitoring Dashboard</h1>
+            <p>Real-time Agent-to-Agent Communication Monitoring with Violation Detection</p>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-primary" onclick="startTesting()">▶️ Start Testing</button>
+            <button class="btn btn-secondary" onclick="reset()">🔄 Reset</button>
+            <div class="status-bar">
+                <div class="status-item">
+                    <span class="status-label">Status</span>
+                    <span class="status-value" id="system-status">Ready</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Tests Run</span>
+                    <span class="status-value" id="tests-count">0</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Violations</span>
+                    <span class="status-value" id="violations-count" style="color: #D72638;">0</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Current Rating</span>
+                    <span class="status-value" id="current-rating">4/5</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="exchange-panel">
+                <h2 class="panel-title">
+                    Live Exchange Monitor
+                    <span class="agent-status status-idle" id="agent-status">IDLE</span>
+                </h2>
+                <div id="current-exchange">
+                    <div class="loading">
+                        <p>Click "Start Testing" to begin monitoring agent exchanges</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="history-panel">
+                <h2 class="panel-title">Exchange History</h2>
+                <div id="history-list">
+                    <p style="text-align: center; color: #666;">No history yet</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let pollInterval;
+
+        function updateStatus() {
+            fetch('/api/status')
+                .then(response => response.json())
+                .then(data => {
+                    // Update status bar
+                    document.getElementById('system-status').textContent = data.status;
+                    document.getElementById('tests-count').textContent = data.total_tests;
+                    document.getElementById('violations-count').textContent = data.violations_detected;
+                    document.getElementById('current-rating').textContent = data.current_rating + '/5';
+
+                    // Update agent status
+                    const statusEl = document.getElementById('agent-status');
+                    statusEl.className = 'agent-status status-' + data.agent_status;
+                    statusEl.textContent = data.agent_status.replace('_', ' ').toUpperCase();
+
+                    // Update current exchange
+                    if (data.current_exchange) {
+                        displayExchange(data.current_exchange);
+                    }
+
+                    // Update history
+                    if (data.history_count > 0) {
+                        updateHistory();
+                    }
+                });
+        }
+
+        function displayExchange(exchange) {
+            const container = document.getElementById('current-exchange');
+
+            let html = `
+                <div class="exchange-box active">
+                    <div class="exchange-header">
+                        <span class="test-id">Test #${exchange.test_id}: Sample ${exchange.sample_id}</span>
+                        <span class="category-badge category-${getCategoryClass(exchange.category)}">
+                            ${exchange.category}
+                        </span>
+                    </div>
+            `;
+
+            // User message
+            html += `
+                <div class="message message-user">
+                    <div class="message-label">👤 User Message (Age: ${exchange.user_age})</div>
+                    <div class="message-content">${exchange.user_message}</div>
+                </div>
+            `;
+
+            // Agent response
+            if (exchange.agent_response) {
+                html += `
+                    <div class="message message-agent">
+                        <div class="message-label">🤖 Agent 1 Response (Claude Haiku)</div>
+                        <div class="message-content">${exchange.agent_response}</div>
+                    </div>
+                `;
+            }
+
+            // Audit result
+            if (exchange.audit_result) {
+                const audit = exchange.audit_result;
+                const auditClass = audit.has_violation ? 'message-violation' : 'message-auditor';
+
+                html += `
+                    <div class="message ${auditClass}">
+                        <div class="message-label">🔍 Agent 2 Audit (GPT-4o Safety Auditor)</div>
+                        <div class="audit-details">
+                            <div class="audit-item">
+                                <div class="audit-label">Violation</div>
+                                <div class="audit-value">${audit.has_violation ? '⚠️ YES' : '✅ NO'}</div>
+                            </div>
+                            <div class="audit-item">
+                                <div class="audit-label">Type</div>
+                                <div class="audit-value">${audit.violation_type}</div>
+                            </div>
+                            <div class="audit-item">
+                                <div class="audit-label">Severity</div>
+                                <div class="audit-value">${audit.severity}</div>
+                            </div>
+                            <div class="audit-item">
+                                <div class="audit-label">Safety Score</div>
+                                <div class="audit-value">${audit.safety_score}/10</div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 10px; color: #666; font-size: 13px;">
+                            ${audit.explanation}
+                        </div>
+                    </div>
+                `;
+
+                // Violation alert
+                if (exchange.violation_recorded) {
+                    html += `
+                        <div class="violation-alert">
+                            🚨 VIOLATION RECORDED - Rating updated: ${exchange.rating_change.from}/5 → ${exchange.rating_change.to}/5
+                            <br><small>${exchange.rating_change.reason}</small>
+                        </div>
+                    `;
+                }
+            }
+
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        function getCategoryClass(category) {
+            if (category.includes('Critical')) return 'critical';
+            if (category.includes('High')) return 'high';
+            return 'safe';
+        }
+
+        function updateHistory() {
+            fetch('/api/history')
+                .then(response => response.json())
+                .then(history => {
+                    const container = document.getElementById('history-list');
+
+                    if (history.length === 0) {
+                        container.innerHTML = '<p style="text-align: center; color: #666;">No history yet</p>';
+                        return;
+                    }
+
+                    let html = '';
+                    history.forEach(item => {
+                        const violationClass = item.violation_recorded ? 'violation' : '';
+                        const time = new Date(item.timestamp).toLocaleTimeString();
+
+                        html += `
+                            <div class="history-item ${violationClass}">
+                                <div class="history-item-header">
+                                    <span class="history-id">Test #${item.test_id}</span>
+                                    <span class="history-time">${time}</span>
+                                </div>
+                                <div class="history-message">${item.user_message}</div>
+                                ${item.violation_recorded ? '<div style="color: #D72638; font-weight: 600; font-size: 12px; margin-top: 5px;">⚠️ VIOLATION</div>' : ''}
+                            </div>
+                        `;
+                    });
+
+                    container.innerHTML = html;
+                });
+        }
+
+        function startTesting() {
+            fetch('/api/start')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Testing started');
+                    if (!pollInterval) {
+                        pollInterval = setInterval(updateStatus, 500);
+                    }
+                });
+        }
+
+        function reset() {
+            fetch('/api/reset')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('System reset');
+                    document.getElementById('current-exchange').innerHTML = `
+                        <div class="loading">
+                            <p>Click "Start Testing" to begin monitoring agent exchanges</p>
+                        </div>
+                    `;
+                    document.getElementById('history-list').innerHTML = '<p style="text-align: center; color: #666;">No history yet</p>';
+                    updateStatus();
+                });
+        }
+
+        // Start polling
+        pollInterval = setInterval(updateStatus, 1000);
+        updateStatus();
+    </script>
+</body>
+</html>

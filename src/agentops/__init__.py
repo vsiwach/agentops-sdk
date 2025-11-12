@@ -16,9 +16,13 @@ def init(
     monitor_http: bool = True,
     block_on_violation: bool = True,
     forbidden: Optional[list[str]] = None,
+    enable_security_model: bool = False,
+    security_model_name: Optional[str] = None,
     enable_llm_policy: bool = False,
     llm_policy_model: Optional[str] = None,
     llm_policy_after_keyword: bool = False,
+    llm_base_url: Optional[str] = None,
+    llm_api_key: Optional[str] = None,
 ) -> None:
     config.server_url = server_url.rstrip("/")
     config.api_key = api_key
@@ -26,10 +30,23 @@ def init(
     config.max_llm_calls = max(1, int(max_llm_calls))
     config.block_on_violation = bool(block_on_violation)
     config.forbidden_patterns = list(forbidden or [])
+
+    # Security layer
+    config.enable_security_model = bool(enable_security_model)
+    if security_model_name:
+        config.security_model_name = security_model_name
+
+    # Domain layer
     config.enable_llm_policy = bool(enable_llm_policy)
     if llm_policy_model:
         config.llm_policy_model = llm_policy_model
     config.llm_policy_after_keyword = bool(llm_policy_after_keyword)
+
+    # Shared LLM config
+    if llm_base_url:
+        config.llm_base_url = llm_base_url
+    if llm_api_key:
+        config.llm_api_key = llm_api_key
 
     try:
         from .patches.openai_v1 import patch_openai

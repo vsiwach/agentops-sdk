@@ -1,0 +1,15 @@
+{
+  "snapshot_at": "2025-11-12T09:47:52.092891",
+  "agents": {
+    "AGENT-671E1D24DC908DA7": {
+      "agent_id": "AGENT-671E1D24DC908DA7",
+      "original_rating": 4,
+      "current_rating": 3,
+      "status": "REVIEW REQUIRED - Investigate recent violations",
+      "violations_24h": 3,
+      "violations_7d": 3,
+      "critical_violations_7d": 0,
+      "high_violations_7d": 3
+    }
+  }
+}
